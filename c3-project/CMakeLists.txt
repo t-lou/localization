@@ -2,7 +2,7 @@ project(Localization)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.5)
 
 # -g allows for gdb debugging
 # turn on -03 for best performance
@@ -21,7 +21,7 @@ include_directories(libcarla-install/include)
 include_directories(libcarla-install/include/system)
 include_directories(rpclib/include)
 
-find_package(PCL 1.2 REQUIRED)
+find_package(PCL REQUIRED)
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
