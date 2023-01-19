@@ -29,8 +29,8 @@ using namespace std;
 #include <pcl/filters/voxel_grid.h>
 #include "helper.h"
 #include <sstream>
-#include <chrono> 
-#include <ctime> 
+#include <chrono>
+#include <ctime>
 #include <pcl/registration/icp.h>
 #include <pcl/registration/ndt.h>
 #include <pcl/console/time.h>   // TicToc
@@ -49,13 +49,13 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event, void*
 		cs.push_back(ControlState(0, -0.02, 0));
   	}
 	else if (event.getKeySym() == "Left" && event.keyDown()){
-		cs.push_back(ControlState(0, 0.02, 0)); 
+		cs.push_back(ControlState(0, 0.02, 0));
   	}
   	if (event.getKeySym() == "Up" && event.keyDown()){
 		cs.push_back(ControlState(0.1, 0, 0));
   	}
 	else if (event.getKeySym() == "Down" && event.keyDown()){
-		cs.push_back(ControlState(-0.1, 0, 0)); 
+		cs.push_back(ControlState(-0.1, 0, 0));
   	}
 	if(event.getKeySym() == "a" && event.keyDown()){
 		refresh_view = true;
@@ -140,7 +140,7 @@ int main(){
 	PointCloudT::Ptr mapCloud(new PointCloudT);
   	pcl::io::loadPCDFile("map.pcd", *mapCloud);
   	cout << "Loaded " << mapCloud->points.size() << " data points from map.pcd" << endl;
-	renderPointCloud(viewer, mapCloud, "map", Color(0,0,1)); 
+	renderPointCloud(viewer, mapCloud, "map", Color(0,0,1));
 
 	typename pcl::PointCloud<PointT>::Ptr cloudFiltered (new pcl::PointCloud<PointT>);
 	typename pcl::PointCloud<PointT>::Ptr scanCloud (new pcl::PointCloud<PointT>);
@@ -161,7 +161,7 @@ int main(){
 			}
 		}
 	});
-	
+
 	Pose poseRef(Point(vehicle->GetTransform().location.x, vehicle->GetTransform().location.y, vehicle->GetTransform().location.z), Rotate(vehicle->GetTransform().rotation.yaw * pi/180, vehicle->GetTransform().rotation.pitch * pi/180, vehicle->GetTransform().rotation.roll * pi/180));
 	double maxError = 0;
 
@@ -175,7 +175,7 @@ int main(){
 			viewer->setCameraPosition(pose.position.x, pose.position.y, 60, pose.position.x+1, pose.position.y+1, 0, 0, 0, 1);
 			refresh_view = false;
 		}
-		
+
 		viewer->removeShape("box0");
 		viewer->removeShape("boxFill0");
 		Pose truePose = Pose(Point(vehicle->GetTransform().location.x, vehicle->GetTransform().location.y, vehicle->GetTransform().location.z), Rotate(vehicle->GetTransform().rotation.yaw * pi/180, vehicle->GetTransform().rotation.pitch * pi/180, vehicle->GetTransform().rotation.roll * pi/180)) - poseRef;
@@ -196,16 +196,12 @@ int main(){
 		}
 
   		viewer->spinOnce ();
-		
+
 		if(!new_scan){
-			
+
 			new_scan = true;
 			// TODO: (Filter scan using voxel filter)
-			pcl::VoxelGrid<PointT> sor;
-			constexpr float voxel_size = 0.1f;
-			sor.setInputCloud (scanCloud);
-			sor.setLeafSize (voxel_size, voxel_size, voxel_size);
-			sor.filter (*cloudFiltered);
+			volxelize(scanCloud, cloudFiltered);
 
 			// TODO: Find pose transform by using ICP or NDT matching
 			//pose = ....
@@ -218,7 +214,7 @@ int main(){
 
 			viewer->removeAllShapes();
 			drawCar(pose, 1,  Color(0,1,0), 0.35, viewer);
-          
+
           	double poseError = sqrt( (truePose.position.x - pose.position.x) * (truePose.position.x - pose.position.x) + (truePose.position.y - pose.position.y) * (truePose.position.y - pose.position.y) );
 			if(poseError > maxError)
 				maxError = poseError;
