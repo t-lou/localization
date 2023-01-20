@@ -207,7 +207,7 @@ int main(){
 			// TODO: (Filter scan using voxel filter)
 			volxelize(scanCloud, cloudFiltered);
 
-			if (lastCloud = nullptr)
+			if (lastCloud == nullptr)
 			{
 				lastCloud = cloudFiltered;
 				continue;
@@ -219,6 +219,8 @@ int main(){
 			totalTransform *= ret_alignment.first.cast<double>();
 			pose = getPose(totalTransform);
 			std::cout << (ret_alignment.second ? "converged" : "unconverged") << std::endl;
+			std::cout << ret_alignment.first << std::endl;
+			std::cout << totalTransform << std::endl;
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
 			pcl::transformPointCloud(*cloudFiltered, *transformedCloud, ret_alignment.first);
