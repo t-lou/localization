@@ -213,9 +213,7 @@ int main(){
 				continue;
 			}
 
-			// TODO: Find pose transform by using ICP or NDT matching
-			pcl::transformPointCloud(*cloudFiltered, *cloudFiltered, totalTransform);
-			// const auto ret_alignment {alignNDT(lastCloud, cloudFiltered, 50)};
+			// TODO: Find pose transform by using ICP or NDT matchin
 			const auto ret_alignment {alignICP(lastCloud, cloudFiltered, 50)};
 			totalTransform *= ret_alignment.first.cast<double>();
 			pose = getPose(totalTransform);
@@ -224,7 +222,7 @@ int main(){
 			std::cout << totalTransform << std::endl;
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
-			pcl::transformPointCloud(*cloudFiltered, *transformedCloud, ret_alignment.first);
+			pcl::transformPointCloud(*cloudFiltered, *transformedCloud, totalTransform);
 
 			viewer->removePointCloud("scan");
 			// TODO: Change `scanCloud` below to your transformed scan
@@ -253,7 +251,7 @@ int main(){
 				viewer->addText("Passed!", 200, 50, 32, 0.0, 1.0, 0.0, "eval",0);
 			}
 
-			lastCloud = cloudFiltered;
+			lastCloud = transformedCloud;
 		}
 
 			pclCloud.points.clear();
