@@ -209,13 +209,15 @@ int main(){
 
 			if (lastCloud == nullptr)
 			{
-				lastCloud = cloudFiltered;
+				lastCloud.reset(new pcl::PointCloud<PointT>);
+				*lastCloud = *cloudFiltered;
 				continue;
 			}
 
 			// TODO: Find pose transform by using ICP or NDT matchin
-			const auto ret_alignment {alignICP(lastCloud, cloudFiltered, 50)};
-			totalTransform *= ret_alignment.first.cast<double>();
+			pcl::transformPointCloud(*cloudFiltered, *transformedCloud, totalTransform);
+			const auto ret_alignment {alignICP(lastCloud, transformedCloud, 50)};
+			totalTransform = ret_alignment.first.cast<double>() * totalTransform;
 			pose = getPose(totalTransform);
 			std::cout << (ret_alignment.second ? "converged" : "unconverged") << std::endl;
 			std::cout << ret_alignment.first << std::endl;
@@ -251,7 +253,7 @@ int main(){
 				viewer->addText("Passed!", 200, 50, 32, 0.0, 1.0, 0.0, "eval",0);
 			}
 
-			lastCloud = transformedCloud;
+			*lastCloud = *transformedCloud;
 		}
 
 			pclCloud.points.clear();
