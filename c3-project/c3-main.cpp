@@ -214,7 +214,7 @@ int main(){
 			}
 
 			// TODO: Find pose transform by using ICP or NDT matching
-			pcl::transformPointCloud(*cloudFiltered, *cloudFiltered, ret_alignment.first);
+			pcl::transformPointCloud(*cloudFiltered, *cloudFiltered, totalTransform);
 			// const auto ret_alignment {alignNDT(lastCloud, cloudFiltered, 50)};
 			const auto ret_alignment {alignICP(lastCloud, cloudFiltered, 50)};
 			totalTransform *= ret_alignment.first.cast<double>();
