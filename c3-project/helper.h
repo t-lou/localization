@@ -1,3 +1,5 @@
+#pragma once
+
 #include <pcl/io/pcd_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <math.h>
@@ -141,7 +143,7 @@ struct LineSegment{
     	if ( (my/mx) == (line.my/line.mx) ){
     		// lines dont intersect or are on top of each other
     		return false;
-    	}   
+    	}
     	if(mx == 0){
     		intersection.x = b;
     		intersection.y = (line.my/line.mx) * intersection.x + line.b;
@@ -180,7 +182,7 @@ struct Lidar{
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr scan(vector<LineSegment> walls){
 
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new PointCloudT); 
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new PointCloudT);
 		double deltaTheta = (2*pi)/double(res);
 		double residue = .1*deltaTheta;
 		for(double angle = theta; angle < theta + 2*pi - residue ; angle += deltaTheta ){
@@ -225,10 +227,10 @@ struct Lidar{
 					//cout << "dis " << distance << endl;
 					//point.Print();
 					if( distance < closetDist){
-						closetDist = distance; 
+						closetDist = distance;
 						cPoint = point;
 					}
-					
+
 				}
 			}
 			if( closetDist < range ){

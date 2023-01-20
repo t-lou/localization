@@ -28,6 +28,7 @@ using namespace std;
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/voxel_grid.h>
 #include "helper.h"
+#include "tasks.hpp"
 #include <sstream>
 #include <chrono>
 #include <ctime>
@@ -204,7 +205,9 @@ int main(){
 			volxelize(scanCloud, cloudFiltered);
 
 			// TODO: Find pose transform by using ICP or NDT matching
-			//pose = ....
+			// const auto ret_alighment {alignNDT(scanCloud, scanCloud, 20)};
+			const auto ret_alighment {alignICP(scanCloud, scanCloud, 20)};
+			pose = getPose(ret_alighment.first);
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
 
