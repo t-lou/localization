@@ -146,6 +146,8 @@ int main(){
 	typename pcl::PointCloud<PointT>::Ptr cloudFiltered (new pcl::PointCloud<PointT>);
 	typename pcl::PointCloud<PointT>::Ptr scanCloud (new pcl::PointCloud<PointT>);
 	typename pcl::PointCloud<PointT>::Ptr transformedCloud (new pcl::PointCloud<PointT>);
+	typename pcl::PointCloud<PointT>::Ptr lastCloud (nullptr);
+	Eigen::Matrix4d totalTransform = transform3D(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 	lidar->Listen([&new_scan, &lastScanTime, &scanCloud](auto data){
 
@@ -205,10 +207,17 @@ int main(){
 			// TODO: (Filter scan using voxel filter)
 			volxelize(scanCloud, cloudFiltered);
 
+			if (lastCloud = nullptr)
+			{
+				lastCloud = cloudFiltered;
+				continue;
+			}
+
 			// TODO: Find pose transform by using ICP or NDT matching
-			// const auto ret_alignment {alignNDT(mapCloud, cloudFiltered, 20)};
-			const auto ret_alignment {alignICP(mapCloud, cloudFiltered, 20)};
-			pose = getPose(ret_alignment.first.cast<double>());
+			// const auto ret_alignment {alignNDT(lastCloud, cloudFiltered, 50)};
+			const auto ret_alignment {alignICP(lastCloud, cloudFiltered, 50)};
+			totalTransform *= ret_alignment.first.cast<double>();
+			pose = getPose(totalTransform);
 			std::cout << (ret_alignment.second ? "converged" : "unconverged") << std::endl;
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
@@ -240,6 +249,8 @@ int main(){
 			else{
 				viewer->addText("Passed!", 200, 50, 32, 0.0, 1.0, 0.0, "eval",0);
 			}
+
+			lastCloud = cloudFiltered;
 		}
 
 			pclCloud.points.clear();
