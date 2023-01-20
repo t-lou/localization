@@ -16,7 +16,7 @@ void volxelize(typename pcl::PointCloud<PointT>::Ptr scanCloud,
     sor.filter (*cloudFiltered);
 }
 
-std::pair<Eigen::Matrix4d, bool> alignNDT(
+std::pair<Eigen::Matrix4f, bool> alignNDT(
     typename pcl::PointCloud<PointT>::Ptr pc_from,
     typename pcl::PointCloud<PointT>::Ptr pc_to,
     const int max_interation)
@@ -27,10 +27,10 @@ std::pair<Eigen::Matrix4d, bool> alignNDT(
 	icp.setInputTarget (pc_to);
 	icp.setMaximumIterations (max_interation);
 	icp.align (*cloud_icp);
-	return {icp.getFinalTransformation ().cast<double>(), icp.hasConverged ()};
+	return {icp.getFinalTransformation (), icp.hasConverged ()};
 }
 
-std::pair<Eigen::Matrix4d, bool> alignICP(
+std::pair<Eigen::Matrix4f, bool> alignICP(
     typename pcl::PointCloud<PointT>::Ptr pc_from,
     typename pcl::PointCloud<PointT>::Ptr pc_to,
     const int max_interation)
@@ -43,5 +43,5 @@ std::pair<Eigen::Matrix4d, bool> alignICP(
     ndt.setInputSource (pc_from);
     ndt.setInputTarget (pc_to);
     ndt.hasConverged ();
-    return {ndt.getFinalTransformation ().cast<double>(), ndt.hasConverged ()};
+    return {ndt.getFinalTransformation (), ndt.hasConverged ()};
 }

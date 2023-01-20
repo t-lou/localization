@@ -9,13 +9,13 @@
 void volxelize(typename pcl::PointCloud<PointT>::Ptr scanCloud,
                typename pcl::PointCloud<PointT>::Ptr cloudFiltered);
 
-std::pair<Eigen::Matrix4d, bool> alignNDT(
+std::pair<Eigen::Matrix4f, bool> alignNDT(
     typename pcl::PointCloud<PointT>::Ptr pc_from,
     typename pcl::PointCloud<PointT>::Ptr pc_to,
     int max_interation
 );
 
-std::pair<Eigen::Matrix4d, bool> alignICP(
+std::pair<Eigen::Matrix4f, bool> alignICP(
     typename pcl::PointCloud<PointT>::Ptr pc_from,
     typename pcl::PointCloud<PointT>::Ptr pc_to,
     int max_interation

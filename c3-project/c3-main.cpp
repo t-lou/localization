@@ -145,6 +145,7 @@ int main(){
 
 	typename pcl::PointCloud<PointT>::Ptr cloudFiltered (new pcl::PointCloud<PointT>);
 	typename pcl::PointCloud<PointT>::Ptr scanCloud (new pcl::PointCloud<PointT>);
+	typename pcl::PointCloud<PointT>::Ptr transformedCloud (new pcl::PointCloud<PointT>);
 
 	lidar->Listen([&new_scan, &lastScanTime, &scanCloud](auto data){
 
@@ -205,15 +206,17 @@ int main(){
 			volxelize(scanCloud, cloudFiltered);
 
 			// TODO: Find pose transform by using ICP or NDT matching
-			// const auto ret_alighment {alignNDT(scanCloud, scanCloud, 20)};
-			const auto ret_alighment {alignICP(scanCloud, scanCloud, 20)};
-			pose = getPose(ret_alighment.first);
+			// const auto ret_alignment {alignNDT(mapCloud, cloudFiltered, 20)};
+			const auto ret_alignment {alignICP(mapCloud, cloudFiltered, 20)};
+			pose = getPose(ret_alignment.first.cast<double>());
+			std::cout << (ret_alignment.second ? "converged" : "unconverged") << std::endl;
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
+			pcl::transformPointCloud(*cloudFiltered, *transformedCloud, ret_alignment.first);
 
 			viewer->removePointCloud("scan");
 			// TODO: Change `scanCloud` below to your transformed scan
-			renderPointCloud(viewer, scanCloud, "scan", Color(1,0,0) );
+			renderPointCloud(viewer, transformedCloud, "scan", Color(1,0,0) );
 
 			viewer->removeAllShapes();
 			drawCar(pose, 1,  Color(0,1,0), 0.35, viewer);
