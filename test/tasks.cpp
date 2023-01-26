@@ -9,7 +9,7 @@
 void volxelize(typename pcl::PointCloud<PointT>::Ptr scanCloud,
                typename pcl::PointCloud<PointT>::Ptr cloudFiltered) {
   pcl::VoxelGrid<PointT> sor;
-  constexpr float voxel_size = 0.2f;
+  constexpr float voxel_size = 0.5f;
   sor.setInputCloud(scanCloud);
   sor.setLeafSize(voxel_size, voxel_size, voxel_size);
   sor.filter(*cloudFiltered);
@@ -24,9 +24,10 @@ alignICP(typename pcl::PointCloud<PointT>::Ptr pc_from,
   icp.setInputSource(pc_from);
   icp.setInputTarget(pc_to);
   icp.setMaximumIterations(max_interation);
-  icp.setMaxCorrespondenceDistance(2);
-  icp.setTransformationEpsilon(1e-6);
-  icp.setEuclideanFitnessEpsilon(1);
+  // icp.setMaxCorrespondenceDistance(1);
+  // icp.setTransformationEpsilon(1e-6);
+  // icp.setEuclideanFitnessEpsilon(0.1);
+  icp.setUseReciprocalCorrespondences(true);
   icp.align(*cloud_icp);
   return {icp.getFinalTransformation(), icp.hasConverged()};
 }

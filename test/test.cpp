@@ -2,12 +2,14 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <vector>
 #include <queue>
 #include <string>
 #include <unordered_set>
 
 #include <pcl/io/pcd_io.h>
-#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/transforms.h>
+#include <opencv2/opencv.hpp>
 
 #include "helper.h"
 #include "tasks.hpp"
@@ -62,9 +64,57 @@ private:
   std::queue<std::pair<std::string, std::string>> todos_;
 };
 
+std::vector<float> get_max(PointCloudT::Ptr pc)
+{
+  float min_z = pc->points[0].z;
+  std::vector<float> ret{pc->points[0].x, pc->points[0].x, pc->points[0].y, pc->points[0].y};
+
+  for (const auto& pt : pc->points)
+  {
+    ret[0] = std::max(ret[0], pt.x);
+    ret[1] = std::min(ret[1], pt.x);
+    ret[2] = std::max(ret[2], pt.y);
+    ret[3] = std::min(ret[3], pt.y);
+    min_z = std::min(min_z, pt.z);
+  }
+
+  std::cout << ret[0] << " " << ret[1] << " " << ret[2] << " " << ret[3] << std::endl;
+  std::cout << min_z << std::endl;
+
+  return ret;
+}
+
+void draw(cv::Mat& canvas, const std::vector<float>& lim, const PointCloudT::Ptr& pc, const cv::Vec3b color)
+{
+  for (const auto& pt : pc->points)
+  {
+    const float x = (pt.x - lim[1]) / (lim[0] - lim[1]);
+    const float y = (pt.y - lim[3]) / (lim[2] - lim[3]);
+    const int row = (int)(y * canvas.rows);
+    const int col = (int)(x * canvas.cols);
+    if (row >= 0 && row < canvas.rows && col >= 0 && col < canvas.cols)
+    {
+      canvas.at<cv::Vec3b>((int)(y * canvas.rows), (int)(x * canvas.cols)) = color;
+    }
+  }
+}
+
+PointCloudT::Ptr filter(const PointCloudT::Ptr& pc)
+{
+  PointCloudT::Ptr ret(new PointCloudT);
+  for (const auto& pt : pc->points)
+  {
+    if (pt.z > 0.0F)
+    {
+      ret->points.push_back(pt);
+    }
+  }
+  return ret;
+}
+
 int main() { 
   char const* home = getenv("HOME");
-  const std::string prefix{std::string{home} + "/workspace/udacity/localization/data1/"};
+  const std::string prefix{std::string{home} + "/workspace/udacity/localization/data2/"};
   const std::string path_map{
       std::string{home} + "/workspace/udacity/localization/c3-project/map.pcd"};
   DataProvider warehouse(prefix);
@@ -76,7 +126,13 @@ int main() {
     map = nullptr;
     return EXIT_FAILURE;
   }
+  const auto lim = get_max(map);
+
+  map = filter(map);
   volxelize(map, map_lite);
+
+  Eigen::Matrix4f total_transform = Eigen::Matrix4f::Identity();
+
   while (warehouse.fine()) {
     auto data = DataProvider::load(warehouse.then());
     std::cout << data.first->size() << std::endl
@@ -84,15 +140,29 @@ int main() {
               << data.second.position.z << std::endl;
 
     // from here it should be the same as in project
-    PointCloudT::Ptr scan = data.first;
+    PointCloudT::Ptr scan = filter(data.first);
     PointCloudT::Ptr scan_lite(new PointCloudT);
+    PointCloudT::Ptr transformed(new PointCloudT);
     volxelize(scan, scan_lite);
+    pcl::transformPointCloud(*scan_lite, *transformed, total_transform);
 
-    const auto ret = alignICP(scan_lite, map_lite, 20);
+    const auto ret = alignICP(transformed, map_lite, 50);
     const Eigen::Matrix4f transform = ret.first;
-    std::cout << (ret.second ? "converged" : "unconverged") << std::endl;
-    std::cout << transform(0, 3) << " " << transform(1, 3) << " "
-              << transform(2, 3) << std::endl;
-    // pose = getPose(totalTransform);
+
+    total_transform = transform * total_transform;
+    std::cout << total_transform(0, 3) << " " << total_transform(1, 3) << " "
+              << total_transform(2, 3) << std::endl;
+
+    pcl::transformPointCloud(*transformed, *transformed, transform);
+
+    cv::Mat canvas(500, 1900, CV_8UC3, cv::Vec3b(255U,255U,255U));
+
+    draw(canvas, lim, map, cv::Vec3b(128U,128,128U));
+    draw(canvas, lim, map_lite, cv::Vec3b(255U,128U,128U));
+    draw(canvas, lim, scan_lite, cv::Vec3b(128U,255U,128U));
+    draw(canvas, lim, transformed, cv::Vec3b(128U,128U,255U));
+
+    cv::imshow("canvas", canvas);
+    cv::waitKey(100);
   }
 }

@@ -1,0 +1,11 @@
+
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+project(test)
+set (CMAKE_CXX_STANDARD 20)
+find_package(PCL REQUIRED)
+find_package( OpenCV REQUIRED )
+include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+add_executable(test test.cpp helper.cpp tasks.cpp)
+target_link_libraries(test ${PCL_LIBRARIES} ${OpenCV_LIBS})
