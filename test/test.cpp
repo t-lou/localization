@@ -107,6 +107,7 @@ PointCloudT::Ptr filter(const PointCloudT::Ptr& pc)
     if (pt.z > 0.0F)
     {
       ret->points.push_back(pt);
+      ret->points.back().z = 0.0F;
     }
   }
   return ret;
@@ -129,7 +130,7 @@ int main() {
   const auto lim = get_max(map);
 
   map = filter(map);
-  volxelize(map, map_lite);
+  volxelize(map, map_lite, 0.1F);
 
   Eigen::Matrix4f total_transform = Eigen::Matrix4f::Identity();
 
@@ -142,25 +143,28 @@ int main() {
     // from here it should be the same as in project
     PointCloudT::Ptr scan = filter(data.first);
     PointCloudT::Ptr scan_lite(new PointCloudT);
+    PointCloudT::Ptr map_lite_inv(new PointCloudT);
     PointCloudT::Ptr transformed(new PointCloudT);
-    volxelize(scan, scan_lite);
-    pcl::transformPointCloud(*scan_lite, *transformed, total_transform);
+    volxelize(scan, scan_lite, 0.2F);
+    // pcl::transformPointCloud(*scan_lite, *transformed, total_transform);
+    pcl::transformPointCloud(*map_lite, *map_lite_inv, total_transform.inverse());
 
-    const auto ret = alignICP(transformed, map_lite, 50);
+    const auto ret = alignICP(scan_lite, map_lite_inv, 50);
     const Eigen::Matrix4f transform = ret.first;
 
     total_transform = transform * total_transform;
     std::cout << total_transform(0, 3) << " " << total_transform(1, 3) << " "
               << total_transform(2, 3) << std::endl;
 
-    pcl::transformPointCloud(*transformed, *transformed, transform);
 
     cv::Mat canvas(500, 1900, CV_8UC3, cv::Vec3b(255U,255U,255U));
-
-    draw(canvas, lim, map, cv::Vec3b(128U,128,128U));
+    // draw(canvas, lim, map, cv::Vec3b(128U,128,128U));
     draw(canvas, lim, map_lite, cv::Vec3b(255U,128U,128U));
     draw(canvas, lim, scan_lite, cv::Vec3b(128U,255U,128U));
+    // draw(canvas, lim, transformed, cv::Vec3b(0U,0U,0U));
+    pcl::transformPointCloud(*scan_lite, *transformed, total_transform);
     draw(canvas, lim, transformed, cv::Vec3b(128U,128U,255U));
+    // std::cout << (int)ret.second << std::endl;
 
     cv::imshow("canvas", canvas);
     cv::waitKey(100);
