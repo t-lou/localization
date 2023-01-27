@@ -24,7 +24,7 @@ alignICP(typename pcl::PointCloud<PointT>::Ptr pc_from,
   icp.setInputSource(pc_from);
   icp.setInputTarget(pc_to);
   icp.setMaximumIterations(max_interation);
-  icp.setTransformationEpsilon(1e-6);
+  // icp.setTransformationEpsilon(1e-6);
   icp.setUseReciprocalCorrespondences(true);
   icp.align(*cloud_icp);
   return {icp.getFinalTransformation(), icp.hasConverged()};
